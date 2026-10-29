@@ -59,7 +59,7 @@ export const App: React.FC = () => {
   const guvenliGecmis = Array.isArray(gecmis) ? gecmis : [];
 
   return (
-    <div className="relative min-h-dvh w-full bg-slate-950 text-slate-50 flex flex-col justify-between overflow-x-hidden">
+    <div className="relative min-h-screen w-full bg-[#0A0D14] text-slate-50 flex flex-col overflow-x-hidden">
       {/* Canlı Aurora & Yüzen Işık Zerreleri Arka Planı */}
       <AmbientBackground
         aktifTur={bugunkuKart?.tur}
@@ -70,10 +70,10 @@ export const App: React.FC = () => {
       <AnimatePresence>
         {paylasBildirimi && (
           <motion.div
-            initial={{ opacity: 0, y: -24, scale: 0.9 }}
+            initial={{ opacity: 0, y: -20, scale: 0.92 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -16, scale: 0.92 }}
-            className="fixed top-4 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 px-4 py-2 rounded-full bg-slate-900/95 border border-amber-500/40 text-amber-200 text-xs font-medium shadow-2xl backdrop-blur-xl"
+            exit={{ opacity: 0, y: -12, scale: 0.92 }}
+            className="fixed top-16 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 px-4 py-2 rounded-full bg-slate-900/95 border border-amber-500/40 text-amber-200 text-xs font-medium shadow-2xl backdrop-blur-xl"
           >
             <Check className="w-3.5 h-3.5 text-amber-400" />
             <span>{paylasBildirimi}</span>
@@ -81,7 +81,7 @@ export const App: React.FC = () => {
         )}
       </AnimatePresence>
 
-      {/* Üst Bar + Haftalık Ritüel İzi */}
+      {/* Sabit Üst Bar (z-40 ile her zaman görünür ve dokunulabilir) */}
       <Header
         streak={streak}
         gecmis={guvenliGecmis}
@@ -92,37 +92,33 @@ export const App: React.FC = () => {
         onAyarlarAc={() => setAyarlarAcik(true)}
       />
 
-      {/* Ana İçerik Alanı (pb-6 ile alt dock ile çakışma önlenir) */}
-      <main className="relative z-10 flex-1 flex flex-col justify-center py-2 pb-6">
+      {/* Ana İçerik Alanı: Üstten doğal akış (justify-start), altta dock için boşluk (pb-24) */}
+      <main className="relative z-10 flex-1 w-full pt-3 pb-24 sm:py-6 sm:pb-28">
         {yukleniyor || !bugunkuKart ? (
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="w-full max-w-2xl mx-auto px-4 sm:px-6 my-auto"
-          >
-            <div className="relative overflow-hidden rounded-3xl bg-slate-900/70 backdrop-blur-xl border border-white/[0.08] p-6 sm:p-8 space-y-5 shadow-2xl">
+          <div className="w-full max-w-xl mx-auto px-3.5 sm:px-6">
+            <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-slate-900/75 backdrop-blur-xl border border-white/[0.08] p-5 sm:p-7 space-y-4 shadow-2xl">
               <div className="flex items-center justify-between">
-                <div className="h-6 w-36 rounded-full bg-white/[0.06] animate-pulse" />
+                <div className="h-5 w-32 rounded-full bg-white/[0.06] animate-pulse" />
                 <div className="h-5 w-20 rounded-full bg-white/[0.05] animate-pulse" />
               </div>
-              <div className="space-y-2.5">
-                <div className="h-4 w-44 rounded bg-amber-500/20 animate-pulse" />
-                <div className="h-8 w-3/4 rounded-lg bg-white/[0.08] animate-pulse" />
-              </div>
-              <div className="h-14 w-full rounded-xl bg-white/[0.05] animate-pulse" />
               <div className="space-y-2">
-                <div className="h-4 w-full rounded bg-white/[0.04] animate-pulse" />
-                <div className="h-4 w-5/6 rounded bg-white/[0.04] animate-pulse" />
+                <div className="h-3.5 w-40 rounded bg-amber-500/20 animate-pulse" />
+                <div className="h-7 w-3/4 rounded-lg bg-white/[0.08] animate-pulse" />
               </div>
-              <div className="h-20 w-full rounded-2xl bg-amber-500/[0.06] border border-amber-500/15 animate-pulse" />
-              <div className="pt-1 flex items-center justify-center gap-3 text-xs text-slate-400">
+              <div className="h-12 w-full rounded-xl bg-white/[0.05] animate-pulse" />
+              <div className="space-y-2">
+                <div className="h-3.5 w-full rounded bg-white/[0.04] animate-pulse" />
+                <div className="h-3.5 w-5/6 rounded bg-white/[0.04] animate-pulse" />
+              </div>
+              <div className="h-16 w-full rounded-xl bg-amber-500/[0.06] border border-amber-500/15 animate-pulse" />
+              <div className="pt-1 flex items-center justify-center gap-2.5 text-xs text-slate-400">
                 <div className="w-4 h-4 rounded-full border-2 border-amber-500/30 border-t-amber-400 animate-spin" />
                 <span className="font-serif tracking-wide">
                   Günün odak kartı hazırlanıyor...
                 </span>
               </div>
             </div>
-          </motion.div>
+          </div>
         ) : (
           <FocusCard
             kart={bugunkuKart}

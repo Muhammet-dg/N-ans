@@ -1,13 +1,5 @@
-import React, { useRef, useState, useEffect } from 'react';
-import {
-  motion,
-  useMotionValue,
-  useSpring,
-  useTransform,
-  useMotionTemplate,
-  AnimatePresence,
-  Variants
-} from 'framer-motion';
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence, Variants } from 'framer-motion';
 import confetti from 'canvas-confetti';
 import {
   BookOpen,
@@ -34,21 +26,20 @@ const containerVariants: Variants = {
   visible: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.06,
-      delayChildren: 0.04
+      staggerChildren: 0.05,
+      delayChildren: 0.02
     }
   }
 };
 
-// Mobil WebKit/Chrome GPU katman hatasını önlemek için blur filtresi kullanılmaz
 const itemVariants: Variants = {
-  hidden: { opacity: 0, y: 12 },
+  hidden: { opacity: 0, y: 10 },
   visible: {
     opacity: 1,
     y: 0,
     transition: {
       type: 'spring',
-      stiffness: 260,
+      stiffness: 280,
       damping: 24
     }
   }
@@ -60,7 +51,6 @@ export const FocusCard: React.FC<FocusCardProps> = ({
   onToggleTimer,
   onTamamla
 }) => {
-  const cardRef = useRef<HTMLDivElement>(null);
   const [pulseActive, setPulseActive] = useState(false);
 
   // 12 Dakikalık Ritüel Odak Sayacı State'i
@@ -94,52 +84,14 @@ export const FocusCard: React.FC<FocusCardProps> = ({
   const saniyeMetni = String(kalanSaniye % 60).padStart(2, '0');
 
   const kelimeMi = kart.tur === 'KELIME';
-
-  // 3D Tilt & İmleç Takip Eden Radial Işık Süzmesi (Yalnızca fare/masaüstü için aktif, mobilde kaydırmayı bozmaz)
-  const mouseX = useMotionValue(0);
-  const mouseY = useMotionValue(0);
-  const glowX = useMotionValue(50);
-  const glowY = useMotionValue(30);
-  const isHovering = useMotionValue(0);
-
-  const springConfig = { stiffness: 220, damping: 24, mass: 0.6 };
-  const rotateX = useSpring(useTransform(mouseY, [-0.5, 0.5], [4.5, -4.5]), springConfig);
-  const rotateY = useSpring(useTransform(mouseX, [-0.5, 0.5], [-4.5, 4.5]), springConfig);
-  const smoothGlowX = useSpring(glowX, { stiffness: 180, damping: 25 });
-  const smoothGlowY = useSpring(glowY, { stiffness: 180, damping: 25 });
-  const glowOpacity = useSpring(isHovering, { stiffness: 200, damping: 25 });
-
-  const accentRgb = kelimeMi ? '245, 158, 11' : '16, 185, 129';
   const softHex = kelimeMi ? '#FDE68A' : '#6EE7B7';
   const primaryHex = kelimeMi ? '#F59E0B' : '#10B981';
-
-  const radialSpotlight = useMotionTemplate`radial-gradient(480px circle at ${smoothGlowX}% ${smoothGlowY}%, rgba(${accentRgb}, 0.15), transparent 70%)`;
-
-  const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
-    // Dokunmatik ekranlarda dikey sayfa kaydırmasını engellememek için 3D eğimi devre dışı bırak
-    if (e.pointerType !== 'mouse' || !cardRef.current) return;
-    const rect = cardRef.current.getBoundingClientRect();
-    const clientX = e.clientX - rect.left;
-    const clientY = e.clientY - rect.top;
-
-    mouseX.set(clientX / rect.width - 0.5);
-    mouseY.set(clientY / rect.height - 0.5);
-    glowX.set((clientX / rect.width) * 100);
-    glowY.set((clientY / rect.height) * 100);
-    isHovering.set(1);
-  };
-
-  const handlePointerLeave = () => {
-    mouseX.set(0);
-    mouseY.set(0);
-    isHovering.set(0);
-  };
 
   const handleTamamlaClick = () => {
     if (kart.tamamlandi) return;
 
     setPulseActive(true);
-    setTimeout(() => setPulseActive(false), 1400);
+    setTimeout(() => setPulseActive(false), 1200);
 
     try {
       const colors = kelimeMi
@@ -147,8 +99,8 @@ export const FocusCard: React.FC<FocusCardProps> = ({
         : ['#10B981', '#6EE7B7', '#ECFDF5', '#059669'];
 
       confetti({
-        particleCount: 40,
-        spread: 65,
+        particleCount: 38,
+        spread: 60,
         origin: { y: 0.75 },
         colors,
         disableForReducedMotion: true,
@@ -162,33 +114,23 @@ export const FocusCard: React.FC<FocusCardProps> = ({
   };
 
   return (
-    <div
-      className="w-full max-w-2xl mx-auto px-4 sm:px-6 my-auto py-2"
-      style={{ perspective: '1100px' }}
-    >
+    <div className="w-full max-w-xl mx-auto px-3.5 sm:px-6">
       <AnimatePresence mode="wait">
         <motion.article
           key={kart.id}
-          ref={cardRef}
-          onPointerMove={handlePointerMove}
-          onPointerLeave={handlePointerLeave}
-          initial={{ opacity: 0, y: 24, scale: 0.98 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, y: -16, scale: 0.98 }}
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -12 }}
           transition={{
             type: 'spring',
             stiffness: 260,
             damping: 24
           }}
-          style={{
-            rotateX,
-            rotateY
-          }}
-          className={`relative overflow-hidden rounded-3xl bg-slate-900/75 backdrop-blur-xl border shadow-2xl transition-colors duration-500 ${
+          className={`relative overflow-hidden rounded-2xl sm:rounded-3xl bg-slate-900/80 backdrop-blur-xl border shadow-2xl transition-colors duration-500 ${
             pulseActive
               ? kelimeMi
-                ? 'border-amber-400 shadow-[0_0_50px_-5px_rgba(245,158,11,0.5)]'
-                : 'border-emerald-400 shadow-[0_0_50px_-5px_rgba(16,185,129,0.5)]'
+                ? 'border-amber-400 shadow-[0_0_40px_-5px_rgba(245,158,11,0.45)]'
+                : 'border-emerald-400 shadow-[0_0_40px_-5px_rgba(16,185,129,0.45)]'
               : kart.tamamlandi
               ? kelimeMi
                 ? 'border-amber-500/35 shadow-glow-amber'
@@ -196,15 +138,6 @@ export const FocusCard: React.FC<FocusCardProps> = ({
               : 'border-white/[0.09] shadow-glass'
           }`}
         >
-          {/* İmleci takip eden yumuşak radial ışık süzmesi */}
-          <motion.div
-            className="pointer-events-none absolute inset-0 z-0"
-            style={{
-              background: radialSpotlight,
-              opacity: glowOpacity
-            }}
-          />
-
           {/* Üst Hareketli Işık Şeridi */}
           <div className="relative h-[2px] w-full overflow-hidden bg-white/[0.04]">
             <motion.div
@@ -217,12 +150,12 @@ export const FocusCard: React.FC<FocusCardProps> = ({
             />
           </div>
 
-          {/* Kademeli (Staggered) İçerik Gövdesi */}
+          {/* Kademeli (Staggered) İçerik Gövdesi — Mobil Ölçülendirmeli */}
           <motion.div
             variants={containerVariants}
             initial="hidden"
             animate="visible"
-            className="relative z-10 p-5 sm:p-8 space-y-4 sm:space-y-5"
+            className="relative z-10 p-4 sm:p-7 space-y-3.5 sm:space-y-4"
           >
             {/* 1. Üst Kategori Etiketi & Odak Sayacı Tetikleyicisi */}
             <motion.div
@@ -230,7 +163,7 @@ export const FocusCard: React.FC<FocusCardProps> = ({
               className="flex items-center justify-between gap-2"
             >
               <div
-                className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] sm:text-xs font-semibold tracking-wider uppercase border ${
+                className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] sm:text-xs font-semibold tracking-wider uppercase border ${
                   kelimeMi
                     ? 'bg-amber-500/10 text-amber-200 border-amber-500/25'
                     : 'bg-emerald-500/10 text-emerald-200 border-emerald-500/25'
@@ -238,13 +171,13 @@ export const FocusCard: React.FC<FocusCardProps> = ({
               >
                 {kelimeMi ? (
                   <>
-                    <BookOpen className="w-3.5 h-3.5 text-amber-400" />
+                    <BookOpen className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-amber-400" />
                     <span>Entelektüel Kavram</span>
                   </>
                 ) : (
                   <>
-                    <PenTool className="w-3.5 h-3.5 text-emerald-400" />
-                    <span>Çizim &amp; Eskiz Görevi</span>
+                    <PenTool className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-emerald-400" />
+                    <span>Çizim &amp; Eskiz</span>
                   </>
                 )}
               </div>
@@ -252,7 +185,7 @@ export const FocusCard: React.FC<FocusCardProps> = ({
               <button
                 type="button"
                 onClick={onToggleTimer}
-                className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border transition-colors ${
+                className={`min-h-[32px] inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium border transition-colors cursor-pointer ${
                   timerAcik || sayacCalisiyor
                     ? kelimeMi
                       ? 'bg-amber-500/15 border-amber-500/35 text-amber-200'
@@ -274,12 +207,12 @@ export const FocusCard: React.FC<FocusCardProps> = ({
                   initial={{ height: 0, opacity: 0 }}
                   animate={{ height: 'auto', opacity: 1 }}
                   exit={{ height: 0, opacity: 0 }}
-                  transition={{ duration: 0.25 }}
+                  transition={{ duration: 0.2 }}
                   className="overflow-hidden"
                 >
-                  <div className="p-3.5 sm:p-4 rounded-2xl bg-slate-950/80 border border-white/[0.08] flex flex-col sm:flex-row items-center justify-between gap-3.5">
-                    <div className="flex items-center gap-3.5 w-full sm:w-auto">
-                      <div className="relative w-12 h-12 sm:w-14 sm:h-14 flex items-center justify-center shrink-0">
+                  <div className="p-3 rounded-xl bg-slate-950/85 border border-white/[0.08] flex flex-wrap items-center justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                      <div className="relative w-11 h-11 flex items-center justify-center shrink-0">
                         <svg className="w-full h-full -rotate-90" viewBox="0 0 56 56">
                           <circle
                             cx="28"
@@ -287,7 +220,7 @@ export const FocusCard: React.FC<FocusCardProps> = ({
                             r="24"
                             fill="none"
                             stroke="rgba(255,255,255,0.08)"
-                            strokeWidth="3.5"
+                            strokeWidth="4"
                           />
                           <circle
                             cx="28"
@@ -295,37 +228,35 @@ export const FocusCard: React.FC<FocusCardProps> = ({
                             r="24"
                             fill="none"
                             stroke={primaryHex}
-                            strokeWidth="3.5"
+                            strokeWidth="4"
                             strokeLinecap="round"
                             strokeDasharray={2 * Math.PI * 24}
                             strokeDashoffset={2 * Math.PI * 24 * (1 - ilerlemeOrani)}
                           />
                         </svg>
-                        <span className="absolute font-mono text-[11px] sm:text-xs font-bold text-slate-100">
+                        <span className="absolute font-mono text-[10px] font-bold text-slate-100">
                           {dakikaMetni}:{saniyeMetni}
                         </span>
                       </div>
 
-                      <div className="min-w-0">
+                      <div>
                         <p className="text-xs font-semibold text-slate-100">
-                          {sayacCalisiyor ? 'Derin Odak Aktif...' : 'Ritüel Odak Sayacı'}
+                          {sayacCalisiyor ? 'Odak Sayacı Çalışıyor' : 'Ritüel Zamanlayıcı'}
                         </p>
-                        <p className="text-[11px] text-slate-400 truncate">
-                          {kelimeMi
-                            ? 'Kavram üzerine derin okuma & tefekkür'
-                            : 'Kağıt ve kurşun kalemle kesintisiz eskiz'}
+                        <p className="text-[10px] text-slate-400">
+                          {kelimeMi ? 'Derin okuma & tefekkür' : 'Kağıt & kalem eskiz süresi'}
                         </p>
                       </div>
                     </div>
 
-                    <div className="flex items-center justify-between sm:justify-end gap-2 w-full sm:w-auto">
-                      <div className="flex items-center gap-1 bg-slate-900 p-1 rounded-xl border border-white/[0.06]">
+                    <div className="flex items-center gap-1.5 ml-auto">
+                      <div className="flex items-center gap-1 bg-slate-900 p-1 rounded-lg border border-white/[0.06]">
                         {[5, 12, 15].map((dk) => (
                           <button
                             key={dk}
                             type="button"
                             onClick={() => sureSec(dk)}
-                            className={`px-2.5 py-1 rounded-lg text-[11px] font-medium transition-colors ${
+                            className={`px-2 py-1 rounded-md text-[10px] font-medium transition-colors ${
                               secilenDakika === dk
                                 ? 'bg-white/15 text-white'
                                 : 'text-slate-400 hover:text-slate-200'
@@ -336,30 +267,28 @@ export const FocusCard: React.FC<FocusCardProps> = ({
                         ))}
                       </div>
 
-                      <div className="flex items-center gap-1.5">
-                        <button
-                          type="button"
-                          onClick={() => setSayacCalisiyor((prev) => !prev)}
-                          className="p-2.5 rounded-xl text-slate-950 font-semibold active:scale-95 transition-transform"
-                          style={{ backgroundColor: primaryHex }}
-                          title={sayacCalisiyor ? 'Duraklat' : 'Başlat'}
-                        >
-                          {sayacCalisiyor ? (
-                            <Pause className="w-4 h-4 fill-current" />
-                          ) : (
-                            <Play className="w-4 h-4 fill-current" />
-                          )}
-                        </button>
+                      <button
+                        type="button"
+                        onClick={() => setSayacCalisiyor((prev) => !prev)}
+                        className="p-2 rounded-lg text-slate-950 font-semibold active:scale-95 transition-transform"
+                        style={{ backgroundColor: primaryHex }}
+                        title={sayacCalisiyor ? 'Duraklat' : 'Başlat'}
+                      >
+                        {sayacCalisiyor ? (
+                          <Pause className="w-3.5 h-3.5 fill-current" />
+                        ) : (
+                          <Play className="w-3.5 h-3.5 fill-current" />
+                        )}
+                      </button>
 
-                        <button
-                          type="button"
-                          onClick={() => sureSec(secilenDakika)}
-                          className="p-2.5 rounded-xl bg-white/[0.06] hover:bg-white/[0.12] text-slate-300 transition-colors"
-                          title="Sayacı Sıfırla"
-                        >
-                          <RotateCcw className="w-4 h-4" />
-                        </button>
-                      </div>
+                      <button
+                        type="button"
+                        onClick={() => sureSec(secilenDakika)}
+                        className="p-2 rounded-lg bg-white/[0.06] hover:bg-white/[0.12] text-slate-300 transition-colors"
+                        title="Sayacı Sıfırla"
+                      >
+                        <RotateCcw className="w-3.5 h-3.5" />
+                      </button>
                     </div>
                   </div>
                 </motion.div>
@@ -369,12 +298,12 @@ export const FocusCard: React.FC<FocusCardProps> = ({
             {/* 2. Başlık & Alt Başlık */}
             <motion.div variants={itemVariants} className="space-y-1">
               <p
-                className="text-xs font-medium tracking-wide uppercase"
+                className="text-[11px] sm:text-xs font-medium tracking-wide uppercase"
                 style={{ color: softHex }}
               >
                 {kart.alt_baslik}
               </p>
-              <h1 className="font-serif text-2xl sm:text-4xl font-semibold text-slate-50 tracking-tight leading-snug">
+              <h1 className="font-serif text-xl sm:text-3xl font-semibold text-slate-50 tracking-tight leading-snug">
                 {kart.baslik}
               </h1>
             </motion.div>
@@ -382,22 +311,22 @@ export const FocusCard: React.FC<FocusCardProps> = ({
             {/* 3. Vurucu Özet */}
             <motion.div
               variants={itemVariants}
-              className={`pl-3.5 sm:pl-5 py-1 border-l-2 ${
+              className={`pl-3 sm:pl-4 py-0.5 border-l-2 ${
                 kelimeMi ? 'border-amber-500/70' : 'border-emerald-500/70'
               }`}
             >
-              <p className="text-[15px] sm:text-[17px] text-slate-100 font-medium leading-relaxed">
+              <p className="text-sm sm:text-base text-slate-100 font-medium leading-relaxed">
                 {kart.ozet}
               </p>
             </motion.div>
 
             {/* 4. Detay / Felsefe / Teknik Püf Noktası */}
-            <motion.div variants={itemVariants} className="space-y-1.5 pt-0.5">
-              <div className="flex items-center gap-2 text-[11px] sm:text-xs font-semibold uppercase tracking-widest text-slate-400">
-                <Compass className="w-3.5 h-3.5" style={{ color: primaryHex }} />
+            <motion.div variants={itemVariants} className="space-y-1">
+              <div className="flex items-center gap-1.5 text-[10px] sm:text-xs font-semibold uppercase tracking-widest text-slate-400">
+                <Compass className="w-3.5 h-3.5 shrink-0" style={{ color: primaryHex }} />
                 <span>{kelimeMi ? 'Felsefi & Bilişsel Derinlik' : 'Tekniğin Kritik Noktası'}</span>
               </div>
-              <p className="text-sm sm:text-[15px] text-slate-300/95 leading-relaxed">
+              <p className="text-[13px] sm:text-[15px] text-slate-300/95 leading-relaxed">
                 {kart.detay}
               </p>
             </motion.div>
@@ -405,22 +334,22 @@ export const FocusCard: React.FC<FocusCardProps> = ({
             {/* 5. Günlük Somut Görev */}
             <motion.div
               variants={itemVariants}
-              className={`rounded-2xl p-4 sm:p-5 border ${
+              className={`rounded-xl sm:rounded-2xl p-3.5 sm:p-4 border ${
                 kelimeMi
                   ? 'bg-gradient-to-br from-amber-500/[0.10] via-slate-900/60 to-slate-900/80 border-amber-500/25'
                   : 'bg-gradient-to-br from-emerald-500/[0.10] via-slate-900/60 to-slate-900/80 border-emerald-500/25'
               }`}
             >
-              <div className="flex items-center justify-between mb-1.5">
+              <div className="flex items-center justify-between mb-1">
                 <span
-                  className="text-xs font-bold uppercase tracking-wider flex items-center gap-1.5"
+                  className="text-[11px] sm:text-xs font-bold uppercase tracking-wider flex items-center gap-1.5"
                   style={{ color: softHex }}
                 >
-                  <Feather className="w-3.5 h-3.5" />
+                  <Feather className="w-3.5 h-3.5 shrink-0" />
                   {kelimeMi ? 'Günlük Kullanım & Araştırma Görevi' : '10-15 Dakikalık Eskiz Görevi'}
                 </span>
               </div>
-              <p className="text-sm sm:text-[15px] text-slate-100 leading-relaxed">
+              <p className="text-[13px] sm:text-[15px] text-slate-100 leading-relaxed">
                 {kart.gunluk_gorev}
               </p>
             </motion.div>
@@ -428,9 +357,9 @@ export const FocusCard: React.FC<FocusCardProps> = ({
             {/* 6. Pratik İpucu */}
             <motion.div
               variants={itemVariants}
-              className="flex items-start gap-2.5 px-3.5 py-3 rounded-xl bg-white/[0.03] border border-white/[0.06]"
+              className="flex items-start gap-2.5 px-3 py-2.5 rounded-xl bg-white/[0.03] border border-white/[0.06]"
             >
-              <Lightbulb className="w-4 h-4 shrink-0 mt-0.5" style={{ color: primaryHex }} />
+              <Lightbulb className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0 mt-0.5" style={{ color: primaryHex }} />
               <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
                 <strong className="text-slate-100 font-medium">İpucu: </strong>
                 {kart.ipucu}
@@ -438,13 +367,13 @@ export const FocusCard: React.FC<FocusCardProps> = ({
             </motion.div>
 
             {/* 7. Tamamlandı Butonu */}
-            <motion.div variants={itemVariants} className="pt-1">
+            <motion.div variants={itemVariants} className="pt-0.5">
               <motion.button
                 type="button"
-                whileTap={{ scale: 0.96 }}
+                whileTap={{ scale: 0.97 }}
                 onClick={handleTamamlaClick}
                 disabled={kart.tamamlandi}
-                className={`w-full rounded-2xl py-3.5 px-5 font-semibold text-sm sm:text-base tracking-wide transition-all duration-300 flex items-center justify-center gap-2.5 ${
+                className={`w-full min-h-[44px] rounded-xl sm:rounded-2xl py-3 sm:py-3.5 px-4 font-semibold text-xs sm:text-sm tracking-wide transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer ${
                   kart.tamamlandi
                     ? kelimeMi
                       ? 'bg-amber-500/20 text-amber-200 border border-amber-400/40 shadow-glow-amber cursor-default'
@@ -454,11 +383,11 @@ export const FocusCard: React.FC<FocusCardProps> = ({
                     : 'bg-gradient-to-r from-emerald-500 to-emerald-600 text-slate-950 hover:brightness-110 shadow-lg shadow-emerald-500/20'
                 }`}
               >
-                <span className="relative flex items-center justify-center w-5 h-5">
+                <span className="relative flex items-center justify-center w-4 h-4 sm:w-5 sm:h-5">
                   <svg
                     viewBox="0 0 24 24"
                     fill="none"
-                    className="w-5 h-5"
+                    className="w-4 h-4 sm:w-5 sm:h-5"
                     stroke="currentColor"
                     strokeWidth={2.4}
                     strokeLinecap="round"
