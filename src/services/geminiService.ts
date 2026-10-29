@@ -1,6 +1,7 @@
 import { GunlukKart, KartTuru } from '../types';
 import { FALLBACK_WORDS } from '../data/fallbackWords';
 import { FALLBACK_DRAWINGS } from '../data/fallbackDrawings';
+import { FALLBACK_SOFTWARE } from '../data/fallbackSoftware';
 
 const GEMINI_MODELS = [
   'gemini-3-flash-preview',
@@ -62,16 +63,16 @@ const RESPONSE_SCHEMA = {
   properties: {
     tur: {
       type: 'STRING',
-      enum: ['KELIME', 'CIZIM'],
-      description: 'Kartın kategorisi: KELIME veya CIZIM'
+      enum: ['KELIME', 'CIZIM', 'YAZILIM'],
+      description: 'Kartın kategorisi: KELIME, CIZIM veya YAZILIM'
     },
     baslik: {
       type: 'STRING',
-      description: 'Kavramın, kelimenin veya çizim tekniğinin adı'
+      description: 'Kavramın, çizim tekniğinin veya yazılım/bilgisayar mühendisliği konusunun adı'
     },
     alt_baslik: {
       type: 'STRING',
-      description: 'Kavramın kökeni/felsefi ekolü veya çizim tekniğinin disiplini'
+      description: 'Kavramın kökeni, çizim disiplini veya bilgisayar mühendisliği alt alanı'
     },
     ozet: {
       type: 'STRING',
@@ -79,11 +80,11 @@ const RESPONSE_SCHEMA = {
     },
     detay: {
       type: 'STRING',
-      description: 'Konunun felsefi derinliği veya tekniğin kritik püf noktası'
+      description: 'Konunun felsefesi, tekniğin püf noktası veya mühendislik çalışma mantığı'
     },
     gunluk_gorev: {
       type: 'STRING',
-      description: 'Gün içinde kelimeyi kullanma/araştırma aksiyonu veya 10-15 dakikalık kağıt-kalem çizim görevi'
+      description: '10-15 dakikada uygulanabilecek somut kelime, çizim veya yazılım/mimari pratik görevi'
     },
     ipucu: {
       type: 'STRING',
@@ -105,7 +106,13 @@ export function yerelYedekKartGetir(
   secilenTur: KartTuru,
   haricBasliklar: string[] = []
 ): GunlukKart {
-  const havuz = secilenTur === 'KELIME' ? FALLBACK_WORDS : FALLBACK_DRAWINGS;
+  const havuz =
+    secilenTur === 'KELIME'
+      ? FALLBACK_WORDS
+      : secilenTur === 'CIZIM'
+      ? FALLBACK_DRAWINGS
+      : FALLBACK_SOFTWARE;
+
   const haricSet = new Set(haricBasliklar.map((b) => b.toLowerCase().trim()));
   const uygunlar = havuz.filter((k) => !haricSet.has(k.baslik.toLowerCase().trim()));
   const adaylar = uygunlar.length > 0 ? uygunlar : havuz;
@@ -114,19 +121,23 @@ export function yerelYedekKartGetir(
 
   return {
     ...secilen,
-    id: `${tarih}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+    tur: secilenTur,
+    id: `${tarih}-${secilenTur}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
     tarih,
     tamamlandi: false
   };
 }
 
-export async function fetchYeniGunlukKart(haricBasliklar: string[] = []): Promise<GunlukKart> {
+export async function fetchYeniGunlukKart(
+  hedefTur?: KartTuru,
+  haricBasliklar: string[] = []
+): Promise<GunlukKart> {
   const apiKey = getActiveApiKey();
 
-  // %50 ihtimalle KELIME ya da CIZIM seçimi
-  const secilenTur: KartTuru = Math.random() < 0.5 ? 'KELIME' : 'CIZIM';
+  const turler: KartTuru[] = ['KELIME', 'CIZIM', 'YAZILIM'];
+  const secilenTur: KartTuru =
+    hedefTur || turler[Math.floor(Math.random() * turler.length)];
 
-  // Mobil PWA'da veya sunucuda API anahtarı tanımlı değilse ya da çevrimdışıysa hata verme, doğrudan küratörlü yerel kart sun
   if (!apiKey || (typeof navigator !== 'undefined' && !navigator.onLine)) {
     return yerelYedekKartGetir(secilenTur, haricBasliklar);
   }
@@ -136,11 +147,17 @@ export async function fetchYeniGunlukKart(haricBasliklar: string[] = []): Promis
       ? `\nDaha önce üretilen şu başlıkları KESİNLİKLE tekrar etme: ${haricBasliklar.slice(0, 30).join(', ')}.`
       : '';
 
-  const prompt = `Sen kıdemli bir entelektüel küratör ve güzel sanatlar eğitmenisin.
-Kullanıcı için bugün %50 olasılık kuralına göre belirlenen "${secilenTur}" türünde tek bir odak kartı üreteceksin.
+  const kategoriTalimati =
+    secilenTur === 'KELIME'
+      ? `Tür "KELIME": Az bilinen, derinliği olan zarif bir Türkçe kelime (ör. İstidat, Müşahede, Fehim, Teenni, Basiret) VEYA felsefe, strateji ve bilişsel modeller dünyasından derin bir küresel kavram (ör. Amor Fati, Antifragile, Epistemik Tevazu, Wu Wei) seç. Gün içinde bu kavramı kullanma/araştırma görevi ver.`
+      : secilenTur === 'CIZIM'
+      ? `Tür "CIZIM": Sadece kağıt ve kurşun kalemle 10-15 dakikada tamamlanabilecek mikro bir eskiz/çizim hobi tekniği (ör. Çapraz Tarama, Kontur Tarama, Negatif Alan, Tek Kaçışlı Perspektif, Chiaroscuro, Form Basitleştirme) seç ve somut bir çizim görevi ver.`
+      : `Tür "YAZILIM": Yazılım mimarisi, veri yapıları, algoritmalar, dağıtık sistemler, işletim sistemleri, ağlar veya bilgisayar mühendisliği dünyasından 15 dakikada öğrenilip içselleştirilebilecek kritik bir mühendislik kavramı (ör. CAP Teoremi, Idempotency, Cache Locality, Bloom Filter, Event Loop, Consistent Hashing, Zero-Copy, SOLID, Deadlock) seç. "gunluk_gorev" alanında 15 dakikada kağıt üzerinde şema çizerek veya kısa bir sözde-kod (pseudocode) kurgulayarak yapılacak somut bir mühendislik egzersizi ver.`;
 
-- Eğer tür "KELIME" ise: Az bilinen, derinliği olan zarif bir Türkçe kelime (ör. İstidat, Müşahede, Fehim, Teenni, Basiret) VEYA felsefe, strateji ve bilişsel modeller dünyasından derin bir küresel kavram (ör. Amor Fati, Antifragile, Epistemik Tevazu, Wu Wei) seç. Gün içinde bu kavramı kullanma/araştırma görevi ver.
-- Eğer tür "CIZIM" ise: Sadece kağıt ve kurşun kalemle 10-15 dakikada tamamlanabilecek mikro bir eskiz tekniği (ör. Çapraz Tarama, Kontur Tarama, Negatif Alan, Tek Kaçışlı Perspektif, Chiaroscuro, Form Basitleştirme) seç ve somut bir çizim görevi ver.
+  const prompt = `Sen kıdemli bir entelektüel küratör, güzel sanatlar eğitmeni ve Principal Bilgisayar Mühendisisin.
+Kullanıcı için bugün "${secilenTur}" kategorisinde tek bir odak kartı üreteceksin.
+
+${kategoriTalimati}
 
 Lütfen tüm alanları Türkçe, akıcı, ilham verici ve "editorial-minimalist" bir üslupla doldur.${haricMetni}`;
 
@@ -200,9 +217,9 @@ Lütfen tüm alanları Türkçe, akıcı, ilham verici ve "editorial-minimalist"
       const tarih = bugununTarihi();
 
       return {
-        id: `${tarih}-${Date.now()}`,
+        id: `${tarih}-${secilenTur}-${Date.now()}`,
         tarih,
-        tur: parsed.tur === 'KELIME' || parsed.tur === 'CIZIM' ? parsed.tur : secilenTur,
+        tur: secilenTur,
         baslik: parsed.baslik.trim(),
         alt_baslik: parsed.alt_baslik.trim(),
         ozet: parsed.ozet.trim(),
@@ -213,10 +230,8 @@ Lütfen tüm alanları Türkçe, akıcı, ilham verici ve "editorial-minimalist"
       };
     } catch {
       clearTimeout(timeoutId);
-      // Mobil ağ kopması veya zaman aşımında sıradaki modeli veya yerel kartı dene
     }
   }
 
-  // Tüm modeller başarısız olsa bile mobil deneyimi kesintiye uğratmadan küratörlü kart döndür
   return yerelYedekKartGetir(secilenTur, haricBasliklar);
 }

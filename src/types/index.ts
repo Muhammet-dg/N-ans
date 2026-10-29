@@ -1,4 +1,4 @@
-export type KartTuru = 'KELIME' | 'CIZIM';
+export type KartTuru = 'KELIME' | 'CIZIM' | 'YAZILIM';
 
 export interface GunlukKart {
   id: string;
@@ -13,13 +13,18 @@ export interface GunlukKart {
   tamamlandi: boolean;
 }
 
+export type BugunkuKartlarMap = Record<KartTuru, GunlukKart | null>;
+
 export interface DailyStore {
+  aktifTur: KartTuru;
   bugunkuKart: GunlukKart | null;
+  bugunkuKartlar: BugunkuKartlarMap;
   gecmis: GunlukKart[];
   streak: number;
   yukleniyor: boolean;
   hata: string | null;
-  gunuKontrolEtVeYukle: () => Promise<void>;
+  turSec: (tur: KartTuru) => Promise<void>;
+  gunuKontrolEtVeYukle: (hedefTur?: KartTuru) => Promise<void>;
   kartiTamamla: () => void;
   kartZorlaYenile: () => Promise<void>;
 }

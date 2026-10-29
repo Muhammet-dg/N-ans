@@ -11,9 +11,7 @@ export const AmbientBackground: React.FC<AmbientBackgroundProps> = ({
   aktifTur = 'KELIME',
   tamamlandiMi = false
 }) => {
-  const kelimeMi = aktifTur === 'KELIME';
-
-  // Sabit tohumlu mikro ışık zerreleri (SSR/re-render sıçraması olmaması için)
+  // Sabit tohumlu mikro ışık zerreleri
   const particles = useMemo(
     () =>
       Array.from({ length: 14 }, (_, i) => ({
@@ -27,6 +25,34 @@ export const AmbientBackground: React.FC<AmbientBackgroundProps> = ({
     []
   );
 
+  const birincilGradyan =
+    aktifTur === 'KELIME'
+      ? 'radial-gradient(circle, rgba(245,158,11,0.52) 0%, rgba(217,119,6,0.14) 45%, rgba(15,23,42,0) 72%)'
+      : aktifTur === 'CIZIM'
+      ? 'radial-gradient(circle, rgba(16,185,129,0.52) 0%, rgba(5,150,105,0.14) 45%, rgba(15,23,42,0) 72%)'
+      : 'radial-gradient(circle, rgba(56,189,248,0.52) 0%, rgba(99,102,241,0.16) 45%, rgba(15,23,42,0) 72%)';
+
+  const ikincilGradyan =
+    aktifTur === 'KELIME'
+      ? 'radial-gradient(circle, rgba(16,185,129,0.14) 0%, transparent 70%)'
+      : aktifTur === 'CIZIM'
+      ? 'radial-gradient(circle, rgba(56,189,248,0.14) 0%, transparent 70%)'
+      : 'radial-gradient(circle, rgba(245,158,11,0.14) 0%, transparent 70%)';
+
+  const zerreRenk =
+    aktifTur === 'KELIME'
+      ? '#FDE68A'
+      : aktifTur === 'CIZIM'
+      ? '#6EE7B7'
+      : '#BAE6FD';
+
+  const zerreGolge =
+    aktifTur === 'KELIME'
+      ? '0 0 12px rgba(253, 230, 138, 0.6)'
+      : aktifTur === 'CIZIM'
+      ? '0 0 12px rgba(110, 231, 183, 0.6)'
+      : '0 0 12px rgba(186, 230, 253, 0.65)';
+
   return (
     <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden bg-[#070A10]">
       {/* Derin Gece Gradyanı */}
@@ -36,7 +62,7 @@ export const AmbientBackground: React.FC<AmbientBackgroundProps> = ({
       <motion.div
         animate={{
           scale: [1, 1.12, 1],
-          opacity: tamamlandiMi ? [0.22, 0.32, 0.22] : [0.14, 0.22, 0.14],
+          opacity: tamamlandiMi ? [0.22, 0.32, 0.22] : [0.15, 0.23, 0.15],
           x: ['-50%', '-46%', '-50%'],
           y: [0, 20, 0]
         }}
@@ -45,12 +71,8 @@ export const AmbientBackground: React.FC<AmbientBackgroundProps> = ({
           repeat: Infinity,
           ease: 'easeInOut'
         }}
-        style={{
-          background: kelimeMi
-            ? 'radial-gradient(circle, rgba(245,158,11,0.55) 0%, rgba(217,119,6,0.15) 45%, rgba(15,23,42,0) 72%)'
-            : 'radial-gradient(circle, rgba(16,185,129,0.55) 0%, rgba(5,150,105,0.15) 45%, rgba(15,23,42,0) 72%)'
-        }}
-        className="absolute -top-40 left-1/2 w-[680px] h-[680px] rounded-full blur-3xl"
+        style={{ background: birincilGradyan }}
+        className="absolute -top-40 left-1/2 w-[680px] h-[680px] rounded-full blur-3xl transition-all duration-700"
       />
 
       {/* İkincil Karşıt Ambiyans Küresi */}
@@ -65,15 +87,11 @@ export const AmbientBackground: React.FC<AmbientBackgroundProps> = ({
           repeat: Infinity,
           ease: 'easeInOut'
         }}
-        style={{
-          background: kelimeMi
-            ? 'radial-gradient(circle, rgba(16,185,129,0.14) 0%, transparent 70%)'
-            : 'radial-gradient(circle, rgba(245,158,11,0.14) 0%, transparent 70%)'
-        }}
-        className="absolute -bottom-48 -right-24 w-[540px] h-[540px] rounded-full blur-3xl"
+        style={{ background: ikincilGradyan }}
+        className="absolute -bottom-48 -right-24 w-[540px] h-[540px] rounded-full blur-3xl transition-all duration-700"
       />
 
-      {/* İnce Mimari Izgara Dokusu (Architectural Grid) */}
+      {/* İnce Mimari Izgara Dokusu */}
       <div
         className="absolute inset-0 opacity-[0.025]"
         style={{
@@ -83,7 +101,7 @@ export const AmbientBackground: React.FC<AmbientBackgroundProps> = ({
         }}
       />
 
-      {/* Süzülen Atelier Işık Zerreleri (Floating Embers) */}
+      {/* Süzülen Işık Zerreleri */}
       {particles.map((p) => (
         <motion.span
           key={p.id}
@@ -104,15 +122,12 @@ export const AmbientBackground: React.FC<AmbientBackgroundProps> = ({
             top: p.top,
             width: p.size,
             height: p.size,
-            backgroundColor: kelimeMi ? '#FDE68A' : '#6EE7B7',
-            boxShadow: kelimeMi
-              ? '0 0 12px rgba(253, 230, 138, 0.6)'
-              : '0 0 12px rgba(110, 231, 183, 0.6)'
+            backgroundColor: zerreRenk,
+            boxShadow: zerreGolge
           }}
-          className="absolute rounded-full"
+          className="absolute rounded-full transition-colors duration-500"
         />
       ))}
     </div>
   );
 };
-
