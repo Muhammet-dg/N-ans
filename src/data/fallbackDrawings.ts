@@ -46,6 +46,51 @@ export const FALLBACK_DRAWINGS: DailyCardPayload[] = [
     detay: 'Detaylar (doku, gölge, kıvrım) ancak doğru bir perspektif kutusunun üzerine oturduğunda inandırıcı olur. Endüstriyel tasarımcılar ve klasik figür çizerleri, nesneyi önce şeffaf bir tel kafes (wireframe) gibi görerek görünmeyen arka köşelerini bile hafifçe inşa eder.',
     gunluk_gorev: 'Oda içindeki bir koltuğu, ayakkabıyı veya masa lambasını seç. Hiçbir süsleme veya gölge yapmadan, sadece birbirinin içine geçen şeffaf kutular, silindirler ve merkez eksen çizgileriyle 12 dakikalık bir "röntgen" inşası çiz.',
     ipucu: 'İlk aşamada kalemi çok geriden (ortasından) tutarak bilekten değil omuzdan gelen hafif, hayaletimsi çizgiler kullan.'
+  },
+  {
+    tur: 'CIZIM',
+    baslik: 'Tek Kaçışlı İç Mekan Perspektifi',
+    alt_baslik: 'Mimari Eskiz • Derinlik İllüzyonu',
+    ozet: 'Göz hizasında belirlenen tek bir kaçış noktasına (Vanishing Point) yönelen kılavuz çizgilerle düz kağıtta derin bir koridor veya oda etkisi kurma.',
+    detay: 'Rönesans’ta Brunelleschi ve Alberti tarafından sistematize edilen doğrusal perspektifte, izleyiciye paralel yüzeyler gerçek oranlarını korurken derinliğe giden tüm kenarlar ufuk çizgisindeki tek bir merkezde birleşir.',
+    gunluk_gorev: 'Kağıdın ortasına yatay bir ufuk çizgisi ve merkezine bir nokta koy. Bulunduğun odanın duvar, pencere ve masa köşelerini bu noktadan çıkan ışınlarla hizalayarak 12 dakikada hızlı bir mimari eskiz çıkar.',
+    ipucu: 'Dikey çizgilerin kağıdın kenarına tam paralel kalmasına dikkat et; eğilen dikeyler perspektif illüzyonunu anında bozar.'
+  },
+  {
+    tur: 'CIZIM',
+    baslik: 'Çizgi Ağırlığı (Line Weight) Hiyerarşisi',
+    alt_baslik: 'Dinamik Kontur • Kalem Basıncı Kontrolü',
+    ozet: 'Tek bir dış çizgi boyunca kalemin basıncını değiştirerek ışığı, nesnenin ağırlığını ve izleyicinin odak noktasını yönetme tekniği.',
+    detay: 'Her yeri aynı kalınlıkta çizilmiş bir eskiz düz ve cansız görünür. Işık alan üst kenarlarda çizgi neredeyse kopacak kadar ince, nesnenin alt ve gölge taşıyan kısımlarında veya ön plana çıkan katmanlarında ise koyu ve tok olmalıdır.',
+    gunluk_gorev: 'Masadaki 3 farklı nesneyi üst üste gelecek şekilde yerleştir. Hiç iç tarama (gölgeleme) yapmadan, yalnızca öndeki nesnenin çizgisini kalınlaştırıp arkadakini incelterek 10 dakikada derinlik hissi oluştur.',
+    ipucu: 'İki formun birbirini kestiği "T-kavşağı" noktalarını hafifçe koyulaştırmak, hangi nesnenin önde olduğunu anında belli eder.'
+  },
+  {
+    tur: 'CIZIM',
+    baslik: 'İki Tonlu Notan (Siyah-Beyaz Kütle) Çalışması',
+    alt_baslik: 'Kompozisyon & Işık Tasarımı • Japon Estetiği',
+    ozet: 'Ara gri tonları tamamen eleyerek bir sahneyi yalnızca saf beyaz (ışık) ve saf koyu (gölge) lekelerin dengesi olarak çözümleme.',
+    detay: 'Japon tasarım felsefesinden gelen "Notan" (açık-koyu uyumu), bir resmin uzaktan bakıldığında bile güçlü görünmesini sağlayan soyut iskelettir. Ara tonlara boğulmadan önce gölge ailesini tek bir bağlı leke olarak görmeyi öğretir.',
+    gunluk_gorev: 'Kağıda kibrit kutusu büyüklüğünde 3 küçük dikdörtgen çerçeve çiz. Odanın bir köşesini veya pencere önünü, hiçbir gri ton kullanmadan sadece bembeyaz boşluklar ve simsiyah taranmış gölge bloklarıyla 10 dakikada soyutla.',
+    ipucu: 'Yarı karanlık alanları ya tamamen ışığa ya da tamamen gölgeye dahil et; kararsız grilere izin verme.'
+  },
+  {
+    tur: 'CIZIM',
+    baslik: 'Kumaş Kıvrımları & Gerilim Noktaları (Drapery)',
+    alt_baslik: 'Klasik Etüt • Form ve Yerçekimi',
+    ozet: 'Kumaşın rastgele kırışıklıklarını ezbere kopyalamak yerine, kumaşı tutan "askı noktaları" ile yerçekimi arasındaki gerilim hatlarını çizme.',
+    detay: 'Klasik akademilerde kumaş kıvrımları boru (pipe), zikzak ve spiral gibi temel sınıflara ayrılır. Her kıvrım bir destek noktasından (omuz, masa köşesi, düğüm) doğar ve yerçekimiyle aşağı doğru genişleyerek akar.',
+    gunluk_gorev: 'Bir tişörtü, havluyu veya peçeteyi sandalye kenarına as. Küçük kırışıklıkları görmezden gelerek kumaşın asıldığı tepe noktasından aşağı inen 3 ana silindirik kıvrımı 12 dakikada etüt et.',
+    ipucu: 'Kıvrımın en keskin gölgesi, kumaşın kendi üzerine katlanıp ışığı tamamen kestiği dip çukurdadır.'
+  },
+  {
+    tur: 'CIZIM',
+    baslik: 'Cam ve Su Yüzeyinde Işık Kırılması',
+    alt_baslik: 'Doku & Yansıma • Gözlemsel Eskiz',
+    ozet: 'Şeffaf nesneleri görünür kılan keskin parlama noktalarını (highlight) ve arka plandaki çizgilerin cam içinde uğradığı optik kırılmayı yakalama.',
+    detay: 'Camın kendisi renksizdir; onu kağıt üzerinde var eden şey arkasındaki nesnelerin bükülmesi ve yüzeyindeki yüksek kontrastlı yansımalardır. En parlak beyaz noktanın hemen yanında genellikle en koyu kırılma lekesi yer alır.',
+    gunluk_gorev: 'Yarısına kadar su dolu şeffaf bir bardağın içine bir kalem veya kaşık koy. Suyun üst ve alt kısmında kaşığın nasıl kırıldığını ve bardağın kenarındaki dikey ışık şeritlerini 12 dakikada çiz.',
+    ipucu: 'Parlama (highlight) alanlarını sonradan silgiyle açmak yerine baştan sınırlarını çizip kağıdın saf beyazını koru.'
   }
 ];
 

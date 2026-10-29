@@ -2,11 +2,6 @@ import { GunlukKart, KartTuru } from '../types';
 import { FALLBACK_WORDS } from '../data/fallbackWords';
 import { FALLBACK_DRAWINGS } from '../data/fallbackDrawings';
 
-/**
- * Google Gemini API aktif model zinciri.
- * Eski gemini-1.5-flash ve gemini-2.0-flash modelleri v1beta'da 404 döndürdüğü için
- * en hızlı ve kararlı güncel Flash modelleri sırasıyla denenir.
- */
 const GEMINI_MODELS = [
   'gemini-3-flash-preview',
   'gemini-flash-lite-latest',
@@ -15,6 +10,34 @@ const GEMINI_MODELS = [
 ] as const;
 
 const GEMINI_BASE_URL = 'https://generativelanguage.googleapis.com/v1beta/models';
+const LOCAL_API_KEY_STORAGE = 'nuans-gemini-api-key';
+
+export function getActiveApiKey(): string {
+  try {
+    const localKey = localStorage.getItem(LOCAL_API_KEY_STORAGE);
+    if (localKey && localKey.trim()) {
+      return localKey.trim().replace(/^['"]|['"]$/g, '');
+    }
+  } catch {
+    // localStorage erişilemezse env anahtarına geç
+  }
+
+  const envKey = import.meta.env.VITE_GEMINI_API_KEY;
+  return envKey ? envKey.trim().replace(/^['"]|['"]$/g, '') : '';
+}
+
+export function saveCustomApiKey(key: string): void {
+  try {
+    const cleaned = key.trim().replace(/^['"]|['"]$/g, '');
+    if (cleaned) {
+      localStorage.setItem(LOCAL_API_KEY_STORAGE, cleaned);
+    } else {
+      localStorage.removeItem(LOCAL_API_KEY_STORAGE);
+    }
+  } catch {
+    // ignore
+  }
+}
 
 export function bugununTarihi(): string {
   const simdi = new Date();
@@ -78,7 +101,10 @@ const RESPONSE_SCHEMA = {
   ]
 };
 
-function yerelYedekKartGetir(secilenTur: KartTuru, haricBasliklar: string[] = []): GunlukKart {
+export function yerelYedekKartGetir(
+  secilenTur: KartTuru,
+  haricBasliklar: string[] = []
+): GunlukKart {
   const havuz = secilenTur === 'KELIME' ? FALLBACK_WORDS : FALLBACK_DRAWINGS;
   const haricSet = new Set(haricBasliklar.map((b) => b.toLowerCase().trim()));
   const uygunlar = havuz.filter((k) => !haricSet.has(k.baslik.toLowerCase().trim()));
@@ -88,23 +114,21 @@ function yerelYedekKartGetir(secilenTur: KartTuru, haricBasliklar: string[] = []
 
   return {
     ...secilen,
-    id: `${tarih}-${Date.now()}`,
+    id: `${tarih}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
     tarih,
     tamamlandi: false
   };
 }
 
 export async function fetchYeniGunlukKart(haricBasliklar: string[] = []): Promise<GunlukKart> {
-  const rawKey = import.meta.env.VITE_GEMINI_API_KEY;
-  const apiKey = rawKey ? rawKey.trim().replace(/^['"]|['"]$/g, '') : '';
+  const apiKey = getActiveApiKey();
 
   // %50 ihtimalle KELIME ya da CIZIM seçimi
   const secilenTur: KartTuru = Math.random() < 0.5 ? 'KELIME' : 'CIZIM';
 
-  if (!apiKey) {
-    throw new Error(
-      'Gemini API anahtarı bulunamadı! Lütfen .env dosyasına VITE_GEMINI_API_KEY değişkenini ekleyin ve geliştirme sunucusunu yeniden başlatın.'
-    );
+  // Mobil PWA'da veya sunucuda API anahtarı tanımlı değilse ya da çevrimdışıysa hata verme, doğrudan küratörlü yerel kart sun
+  if (!apiKey || (typeof navigator !== 'undefined' && !navigator.onLine)) {
+    return yerelYedekKartGetir(secilenTur, haricBasliklar);
   }
 
   const haricMetni =
@@ -120,9 +144,10 @@ Kullanıcı için bugün %50 olasılık kuralına göre belirlenen "${secilenTur
 
 Lütfen tüm alanları Türkçe, akıcı, ilham verici ve "editorial-minimalist" bir üslupla doldur.${haricMetni}`;
 
-  let sonHataMesaji = '';
-
   for (const modelAdi of GEMINI_MODELS) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 9000);
+
     try {
       const url = `${GEMINI_BASE_URL}/${modelAdi}:generateContent?key=${encodeURIComponent(apiKey)}`;
       const response = await fetch(url, {
@@ -130,6 +155,7 @@ Lütfen tüm alanları Türkçe, akıcı, ilham verici ve "editorial-minimalist"
         headers: {
           'Content-Type': 'application/json'
         },
+        signal: controller.signal,
         body: JSON.stringify({
           contents: [
             {
@@ -146,19 +172,9 @@ Lütfen tüm alanları Türkçe, akıcı, ilham verici ve "editorial-minimalist"
         })
       });
 
+      clearTimeout(timeoutId);
+
       if (!response.ok) {
-        let detayMesaj = '';
-        try {
-          const errJson = await response.json();
-          detayMesaj = errJson?.error?.message || '';
-        } catch {
-          // ignore
-        }
-        sonHataMesaji = `HTTP ${response.status} (${modelAdi})${detayMesaj ? `: ${detayMesaj}` : ''}`;
-        // 400/401/403 (geçersiz API anahtarı vb.) dışındaki 404/429/503 hatalarında bir sonraki modeli dene
-        if (response.status === 400 || response.status === 401 || response.status === 403) {
-          throw new Error(`Gemini API Yetki/İstek Hatası: ${detayMesaj || response.statusText}`);
-        }
         continue;
       }
 
@@ -166,7 +182,6 @@ Lütfen tüm alanları Türkçe, akıcı, ilham verici ve "editorial-minimalist"
       const rawText: string | undefined = data?.candidates?.[0]?.content?.parts?.[0]?.text;
 
       if (!rawText) {
-        sonHataMesaji = `${modelAdi} boş yanıt döndürdü.`;
         continue;
       }
 
@@ -179,7 +194,6 @@ Lütfen tüm alanları Türkçe, akıcı, ilham verici ve "editorial-minimalist"
       const parsed = JSON.parse(cleanedJson) as GeminiKartYaniti;
 
       if (!parsed.baslik || !parsed.ozet || !parsed.detay || !parsed.gunluk_gorev) {
-        sonHataMesaji = `${modelAdi} eksik JSON alanları döndürdü.`;
         continue;
       }
 
@@ -197,15 +211,12 @@ Lütfen tüm alanları Türkçe, akıcı, ilham verici ve "editorial-minimalist"
         ipucu: parsed.ipucu.trim(),
         tamamlandi: false
       };
-    } catch (err) {
-      if (err instanceof Error && err.message.startsWith('Gemini API Yetki/İstek Hatası:')) {
-        throw err;
-      }
-      sonHataMesaji = err instanceof Error ? err.message : 'Bilinmeyen hata';
+    } catch {
+      clearTimeout(timeoutId);
+      // Mobil ağ kopması veya zaman aşımında sıradaki modeli veya yerel kartı dene
     }
   }
 
-  // Tüm modeller geçici olarak yoğun (503/429) veya çevrimdışı ise kullanıcıyı yarı yolda bırakmamak için yedek kart dön
-  console.warn('Gemini modelleri yanıt vermedi, yerel yedek kart kullanılıyor:', sonHataMesaji);
+  // Tüm modeller başarısız olsa bile mobil deneyimi kesintiye uğratmadan küratörlü kart döndür
   return yerelYedekKartGetir(secilenTur, haricBasliklar);
 }

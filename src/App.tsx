@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { AlertTriangle, RefreshCw, Check } from 'lucide-react';
+import { Check } from 'lucide-react';
 import { useDailyStore } from './store/useDailyStore';
 import { Header } from './components/Header';
 import { FocusCard } from './components/FocusCard';
 import { ArchiveDrawer } from './components/ArchiveDrawer';
 import { AmbientBackground } from './components/AmbientBackground';
 import { BottomDock } from './components/BottomDock';
+import { ApiKeyModal } from './components/ApiKeyModal';
 
 export const App: React.FC = () => {
   const {
@@ -14,13 +15,13 @@ export const App: React.FC = () => {
     gecmis,
     streak,
     yukleniyor,
-    hata,
     gunuKontrolEtVeYukle,
     kartiTamamla,
     kartZorlaYenile
   } = useDailyStore();
 
   const [arsivAcik, setArsivAcik] = useState(false);
+  const [ayarlarAcik, setAyarlarAcik] = useState(false);
   const [timerAcik, setTimerAcik] = useState(false);
   const [paylasBildirimi, setPaylasBildirimi] = useState<string | null>(null);
 
@@ -55,6 +56,8 @@ export const App: React.FC = () => {
     }
   };
 
+  const guvenliGecmis = Array.isArray(gecmis) ? gecmis : [];
+
   return (
     <div className="relative min-h-dvh w-full bg-slate-950 text-slate-50 flex flex-col justify-between overflow-x-hidden">
       {/* Canlı Aurora & Yüzen Işık Zerreleri Arka Planı */}
@@ -81,87 +84,60 @@ export const App: React.FC = () => {
       {/* Üst Bar + Haftalık Ritüel İzi */}
       <Header
         streak={streak}
-        gecmis={gecmis}
+        gecmis={guvenliGecmis}
         bugunTamamlandiMi={Boolean(bugunkuKart?.tamamlandi)}
         yukleniyor={yukleniyor}
         aktifTur={bugunkuKart?.tur}
         onYeniKartCek={() => void kartZorlaYenile()}
-        onArsivAc={() => setArsivAcik(true)}
+        onAyarlarAc={() => setAyarlarAcik(true)}
       />
 
-      {/* Ana İçerik Alanı */}
-      <main className="relative z-10 flex-1 flex flex-col justify-center py-2">
-        {yukleniyor ? (
+      {/* Ana İçerik Alanı (pb-6 ile alt dock ile çakışma önlenir) */}
+      <main className="relative z-10 flex-1 flex flex-col justify-center py-2 pb-6">
+        {yukleniyor || !bugunkuKart ? (
           <motion.div
-            initial={{ opacity: 0, y: 16 }}
+            initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             className="w-full max-w-2xl mx-auto px-4 sm:px-6 my-auto"
           >
-            <div className="relative overflow-hidden rounded-[28px] bg-slate-900/60 backdrop-blur-2xl border border-white/[0.08] p-6 sm:p-9 space-y-6 shadow-2xl">
+            <div className="relative overflow-hidden rounded-3xl bg-slate-900/70 backdrop-blur-xl border border-white/[0.08] p-6 sm:p-8 space-y-5 shadow-2xl">
               <div className="flex items-center justify-between">
                 <div className="h-6 w-36 rounded-full bg-white/[0.06] animate-pulse" />
                 <div className="h-5 w-20 rounded-full bg-white/[0.05] animate-pulse" />
               </div>
-              <div className="space-y-3">
+              <div className="space-y-2.5">
                 <div className="h-4 w-44 rounded bg-amber-500/20 animate-pulse" />
-                <div className="h-9 w-3/4 rounded-lg bg-white/[0.08] animate-pulse" />
+                <div className="h-8 w-3/4 rounded-lg bg-white/[0.08] animate-pulse" />
               </div>
-              <div className="h-16 w-full rounded-xl bg-white/[0.05] animate-pulse" />
+              <div className="h-14 w-full rounded-xl bg-white/[0.05] animate-pulse" />
               <div className="space-y-2">
                 <div className="h-4 w-full rounded bg-white/[0.04] animate-pulse" />
                 <div className="h-4 w-5/6 rounded bg-white/[0.04] animate-pulse" />
-                <div className="h-4 w-4/6 rounded bg-white/[0.04] animate-pulse" />
               </div>
-              <div className="h-24 w-full rounded-2xl bg-amber-500/[0.06] border border-amber-500/15 animate-pulse" />
-              <div className="pt-2 flex items-center justify-center gap-3 text-xs text-slate-400">
+              <div className="h-20 w-full rounded-2xl bg-amber-500/[0.06] border border-amber-500/15 animate-pulse" />
+              <div className="pt-1 flex items-center justify-center gap-3 text-xs text-slate-400">
                 <div className="w-4 h-4 rounded-full border-2 border-amber-500/30 border-t-amber-400 animate-spin" />
                 <span className="font-serif tracking-wide">
-                  Yeni odak kartı kürasyonu hazırlanıyor...
+                  Günün odak kartı hazırlanıyor...
                 </span>
               </div>
             </div>
           </motion.div>
-        ) : hata ? (
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="w-full max-w-lg mx-auto px-6 py-8 rounded-3xl bg-slate-900/60 backdrop-blur-xl border border-rose-500/30 text-center space-y-4 shadow-2xl"
-          >
-            <div className="w-11 h-11 rounded-2xl bg-rose-500/10 border border-rose-500/25 flex items-center justify-center mx-auto text-rose-400">
-              <AlertTriangle className="w-5 h-5" />
-            </div>
-            <div className="space-y-1.5">
-              <h2 className="font-serif text-xl font-semibold text-slate-100">
-                Kart Yüklenemedi
-              </h2>
-              <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
-                {hata}
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={() => void kartZorlaYenile()}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-white/10 text-xs sm:text-sm font-medium text-slate-100 transition-colors"
-            >
-              <RefreshCw className="w-4 h-4" />
-              <span>Tekrar Dene</span>
-            </button>
-          </motion.div>
-        ) : bugunkuKart ? (
+        ) : (
           <FocusCard
             kart={bugunkuKart}
             timerAcik={timerAcik}
             onToggleTimer={() => setTimerAcik((prev) => !prev)}
             onTamamla={kartiTamamla}
           />
-        ) : null}
+        )}
       </main>
 
       {/* PWA Yüzen Cam Alt Dock */}
       <BottomDock
         aktifTur={bugunkuKart?.tur}
         yukleniyor={yukleniyor}
-        gecmisSayisi={gecmis.length}
+        gecmisSayisi={guvenliGecmis.length}
         timerAcik={timerAcik}
         onToggleTimer={() => setTimerAcik((prev) => !prev)}
         onYeniKartCek={() => void kartZorlaYenile()}
@@ -173,7 +149,14 @@ export const App: React.FC = () => {
       <ArchiveDrawer
         isOpen={arsivAcik}
         onClose={() => setArsivAcik(false)}
-        gecmis={gecmis}
+        gecmis={guvenliGecmis}
+      />
+
+      {/* Mobil API Anahtarı & Bağlantı Modalı */}
+      <ApiKeyModal
+        isOpen={ayarlarAcik}
+        onClose={() => setAyarlarAcik(false)}
+        onSavedAndRefresh={() => void kartZorlaYenile()}
       />
     </div>
   );

@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { Flame, Archive, RefreshCw } from 'lucide-react';
+import { Flame, RefreshCw, KeyRound } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { GunlukKart, KartTuru } from '../types';
 
@@ -10,7 +10,7 @@ interface HeaderProps {
   yukleniyor: boolean;
   aktifTur?: KartTuru;
   onYeniKartCek: () => void;
-  onArsivAc: () => void;
+  onAyarlarAc: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -20,7 +20,7 @@ export const Header: React.FC<HeaderProps> = ({
   yukleniyor,
   aktifTur = 'KELIME',
   onYeniKartCek,
-  onArsivAc
+  onAyarlarAc
 }) => {
   const bugunFormatli = new Intl.DateTimeFormat('tr-TR', {
     weekday: 'long',
@@ -29,10 +29,11 @@ export const Header: React.FC<HeaderProps> = ({
   }).format(new Date());
 
   const kelimeMi = aktifTur === 'KELIME';
+  const guvenliGecmis = Array.isArray(gecmis) ? gecmis : [];
 
   // Son 7 günün ritüel izi
   const sonYediGun = useMemo(() => {
-    const tamamlananTarihler = new Set(gecmis.map((k) => k.tarih));
+    const tamamlananTarihler = new Set(guvenliGecmis.map((k) => k.tarih));
     const gunler: { Etiket: string; tarih: string; dolu: boolean; bugunMu: boolean }[] = [];
     const gunIsimleri = ['Pz', 'Pt', 'Sa', 'Ça', 'Pe', 'Cu', 'Ct'];
 
@@ -53,109 +54,90 @@ export const Header: React.FC<HeaderProps> = ({
       });
     }
     return gunler;
-  }, [gecmis, bugunTamamlandiMi]);
+  }, [guvenliGecmis, bugunTamamlandiMi]);
 
   return (
-    <header className="w-full max-w-2xl mx-auto pt-5 pb-2 px-4 sm:px-6 z-20 space-y-3">
-      <div className="flex flex-wrap items-center justify-between gap-3">
+    <header className="w-full max-w-2xl mx-auto pt-safe pb-2 px-4 sm:px-6 z-20 space-y-2.5">
+      <div className="flex items-center justify-between gap-2">
         {/* Sol: Marka & Tarih */}
-        <div className="flex flex-col">
+        <div className="flex flex-col min-w-0">
           <div className="flex items-center gap-2">
             <motion.span
               animate={{
-                scale: [1, 1.35, 1],
+                scale: [1, 1.3, 1],
                 opacity: [0.8, 1, 0.8]
               }}
               transition={{ duration: 2.8, repeat: Infinity, ease: 'easeInOut' }}
-              className={`inline-block w-2 h-2 rounded-full transition-colors duration-500 ${
+              className={`inline-block w-2 h-2 rounded-full shrink-0 transition-colors duration-500 ${
                 kelimeMi
-                  ? 'bg-amber-400 shadow-[0_0_12px_#F59E0B]'
-                  : 'bg-emerald-400 shadow-[0_0_12px_#10B981]'
+                  ? 'bg-amber-400 shadow-[0_0_10px_#F59E0B]'
+                  : 'bg-emerald-400 shadow-[0_0_10px_#10B981]'
               }`}
             />
-            <span className="font-display text-xs sm:text-sm tracking-[0.24em] uppercase text-slate-100 font-semibold">
+            <span className="font-display text-xs sm:text-sm tracking-[0.2em] uppercase text-slate-100 font-semibold truncate">
               Nüans &amp; Atelier
             </span>
           </div>
-          <p className="text-[11px] sm:text-xs text-slate-400 tracking-wider uppercase mt-0.5 font-medium">
+          <p className="text-[11px] text-slate-400 tracking-wider uppercase mt-0.5 font-medium truncate">
             {bugunFormatli}
           </p>
         </div>
 
-        {/* Sağ: Seri (Streak), Arşiv ve Geliştirici Test Butonu */}
-        <div className="flex items-center gap-2">
+        {/* Sağ: Seri (Streak), API Ayarı ve Yeni Kart Çek (Test) */}
+        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
           {/* Seri (Streak) Göstergesi */}
-          <motion.div
-            whileHover={{ scale: 1.04 }}
+          <div
             title="Kesintisiz Günlük Odak Serisi"
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border backdrop-blur-md transition-colors ${
+            className={`flex items-center gap-1 px-2.5 py-1.5 rounded-full border backdrop-blur-md transition-colors ${
               streak > 0
-                ? 'bg-amber-500/12 border-amber-500/35 text-amber-200 shadow-[0_0_20px_-5px_rgba(245,158,11,0.3)]'
+                ? 'bg-amber-500/12 border-amber-500/35 text-amber-200'
                 : 'bg-slate-900/60 border-white/[0.08] text-slate-400'
             }`}
           >
-            <motion.div
-              animate={streak > 0 ? { rotate: [-6, 6, -6], scale: [1, 1.12, 1] } : {}}
-              transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' }}
-            >
-              <Flame
-                className={`w-3.5 h-3.5 ${
-                  streak > 0 ? 'text-amber-400 fill-amber-400/35' : 'text-slate-400'
-                }`}
-              />
-            </motion.div>
+            <Flame
+              className={`w-3.5 h-3.5 ${
+                streak > 0 ? 'text-amber-400 fill-amber-400/35' : 'text-slate-400'
+              }`}
+            />
             <span className="text-xs font-bold">{streak}</span>
-            <span className="text-[11px] opacity-80">Seri</span>
-          </motion.div>
+            <span className="hidden xs:inline text-[11px] opacity-80">Seri</span>
+          </div>
 
-          {/* Geçmiş Arşiv Butonu */}
-          <motion.button
+          {/* Geliştirici / Hızlı Yenile Butonu */}
+          <button
             type="button"
-            whileHover={{ scale: 1.04 }}
-            whileTap={{ scale: 0.94 }}
-            onClick={onArsivAc}
-            className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-900/60 hover:bg-slate-800/80 border border-white/[0.08] text-slate-200 text-xs font-medium backdrop-blur-md transition-colors"
-          >
-            <Archive className="w-3.5 h-3.5 text-slate-400" />
-            <span>Geçmiş</span>
-            {gecmis.length > 0 && (
-              <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-white/[0.08] text-slate-100">
-                {gecmis.length}
-              </span>
-            )}
-          </motion.button>
-
-          {/* Geliştirici Test Butonu: Yeni Kart Çek (Test) */}
-          <motion.button
-            type="button"
-            whileHover={{ scale: 1.03 }}
-            whileTap={{ scale: 0.94 }}
             disabled={yukleniyor}
             onClick={onYeniKartCek}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-900/80 hover:bg-slate-800 border border-white/[0.1] text-slate-200 text-xs font-medium backdrop-blur-md transition-colors disabled:opacity-50"
-            title="Geliştirici Testi: Kotadan bağımsız yeni kart üret"
+            className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-full bg-slate-900/80 hover:bg-slate-800 active:scale-95 border border-white/[0.1] text-slate-200 text-xs font-medium backdrop-blur-md transition-all disabled:opacity-50"
+            title="Yeni Kart Çek (Test)"
           >
             <RefreshCw
               className={`w-3.5 h-3.5 ${
                 kelimeMi ? 'text-amber-400' : 'text-emerald-400'
               } ${yukleniyor ? 'animate-spin' : ''}`}
             />
-            <span>Yeni Kart Çek (Test)</span>
-          </motion.button>
+            <span className="text-[11px] sm:text-xs">Yeni Kart</span>
+          </button>
+
+          {/* Mobil API Anahtarı & Bağlantı Butonu */}
+          <button
+            type="button"
+            onClick={onAyarlarAc}
+            className="p-2 rounded-full bg-slate-900/70 hover:bg-slate-800 active:scale-95 border border-white/[0.08] text-slate-300 hover:text-white transition-all"
+            title="API Anahtarı ve Bağlantı Ayarları"
+            aria-label="Ayarlar"
+          >
+            <KeyRound className="w-3.5 h-3.5 text-amber-400/90" />
+          </button>
         </div>
       </div>
 
       {/* PWA Haftalık Ritüel Zinciri (Son 7 Gün) */}
-      <motion.div
-        initial={{ opacity: 0, y: -8 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.45, delay: 0.1 }}
-        className="flex items-center justify-between px-3.5 py-2 rounded-2xl bg-slate-900/45 border border-white/[0.06] backdrop-blur-md"
-      >
+      <div className="flex items-center justify-between px-3.5 py-2 rounded-2xl bg-slate-900/50 border border-white/[0.06] backdrop-blur-md">
         <span className="text-[11px] font-medium text-slate-400 tracking-wide">
           Haftalık Ritüel İzi
         </span>
-        <div className="flex items-center gap-2 sm:gap-3">
+        <div className="flex items-center gap-2.5 sm:gap-3">
           {sonYediGun.map((g) => (
             <div key={g.tarih} className="flex flex-col items-center gap-1">
               <span
@@ -165,12 +147,8 @@ export const Header: React.FC<HeaderProps> = ({
               >
                 {g.Etiket}
               </span>
-              <motion.span
-                initial={false}
-                animate={{
-                  scale: g.dolu ? [1, 1.25, 1] : 1
-                }}
-                className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${
+              <span
+                className={`w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full transition-all duration-300 ${
                   g.dolu
                     ? kelimeMi
                       ? 'bg-amber-400 shadow-[0_0_8px_#F59E0B]'
@@ -183,7 +161,7 @@ export const Header: React.FC<HeaderProps> = ({
             </div>
           ))}
         </div>
-      </motion.div>
+      </div>
     </header>
   );
 };

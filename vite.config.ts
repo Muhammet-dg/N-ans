@@ -7,26 +7,39 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
+      injectRegister: 'auto',
       includeAssets: ['favicon.svg', 'apple-touch-icon.svg'],
       manifest: {
-        name: 'Nocturne & Atelier — Günlük Entelektüel ve Eskiz Ritüeli',
-        short_name: 'Atelier',
+        id: '/',
+        name: 'Nüans & Atelier — Günlük Entelektüel ve Eskiz Ritüeli',
+        short_name: 'Nüans',
         description: 'Her gün tek bir derin kavram veya mikro eskiz pratiği ile zihinsel ve sanatsal gelişim.',
         theme_color: '#0A0D14',
         background_color: '#0A0D14',
         display: 'standalone',
         orientation: 'portrait',
         start_url: '/',
+        scope: '/',
         icons: [
           {
-            src: 'favicon.svg',
+            src: '/favicon.svg',
             sizes: 'any',
             type: 'image/svg+xml',
-            purpose: 'any maskable'
+            purpose: 'any'
+          },
+          {
+            src: '/apple-touch-icon.svg',
+            sizes: '180x180 192x192 512x512',
+            type: 'image/svg+xml',
+            purpose: 'maskable'
           }
         ]
       },
       workbox: {
+        cleanupOutdatedCaches: true,
+        clientsClaim: true,
+        skipWaiting: true,
+        navigateFallback: '/index.html',
         globPatterns: ['**/*.{js,css,html,svg,woff2}'],
         runtimeCaching: [
           {
@@ -62,4 +75,3 @@ export default defineConfig({
     })
   ]
 });
-

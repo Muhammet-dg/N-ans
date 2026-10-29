@@ -115,3 +115,4 @@ export const AmbientBackground: React.FC<AmbientBackgroundProps> = ({
     </div>
   );
 };
+
