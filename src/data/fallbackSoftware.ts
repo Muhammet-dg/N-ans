@@ -92,3 +92,4 @@ export const FALLBACK_SOFTWARE: DailyCardPayload[] = [
     ipucu: 'Kapasiteyi sabit bir sayı (+10) kadar artırmak O(N) ortalamaya yol açar; geometrik olarak (x2) artırmak ise O(1) amortize hızı garanti eder.'
   }
 ];
+

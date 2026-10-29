@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { BugunkuKartlarMap, GunlukKart, KartTuru } from '../types';
+import { BrandLogo } from './BrandLogo';
 
 interface HeaderProps {
   streak: number;
@@ -126,25 +127,20 @@ export const Header: React.FC<HeaderProps> = ({
       }}
     >
       <div className="w-full max-w-xl mx-auto px-3.5 sm:px-6 pb-2.5 space-y-2.5">
-        {/* 1. Üst Satır: Marka & Aksiyon Butonları */}
+        {/* 1. Üst Satır: Özel Amblem Logo + Marka & Aksiyon Butonları */}
         <div className="flex items-center justify-between gap-2">
-          <div className="flex flex-col min-w-0">
-            <div className="flex items-center gap-1.5">
-              <motion.span
-                animate={{
-                  scale: [1, 1.25, 1],
-                  opacity: [0.8, 1, 0.8]
-                }}
-                transition={{ duration: 2.8, repeat: Infinity, ease: 'easeInOut' }}
-                className={`inline-block w-2 h-2 rounded-full shrink-0 transition-colors duration-500 ${vurguNoktaSınıfı}`}
-              />
-              <span className="font-display text-[11px] sm:text-xs tracking-[0.18em] uppercase text-slate-100 font-semibold truncate">
-                Nüans &amp; Atelier
-              </span>
+          <div className="flex items-center gap-2.5 min-w-0">
+            <BrandLogo aktifTur={aktifTur} />
+            <div className="flex flex-col min-w-0">
+              <div className="flex items-center gap-1.5">
+                <span className="font-display text-xs sm:text-sm tracking-[0.2em] uppercase text-slate-100 font-bold truncate">
+                  Nüans &amp; Atelier
+                </span>
+              </div>
+              <p className="text-[10px] text-slate-400 tracking-wider uppercase mt-0.5 font-medium truncate">
+                {bugunFormatli}
+              </p>
             </div>
-            <p className="text-[10px] text-slate-400 tracking-wider uppercase mt-0.5 font-medium truncate">
-              {bugunFormatli}
-            </p>
           </div>
 
           {/* Sağ: Seri (Streak), Yeni Kart ve API Ayarı */}
@@ -220,7 +216,7 @@ export const Header: React.FC<HeaderProps> = ({
                   seciliMi ? 'text-white' : 'text-slate-400 hover:text-slate-200'
                 }`}
               >
-                {/* Kayan Yay Fiziği Kapsülü (Framer Motion layoutId) */}
+                {/* Kayan Yay Fiziği Kapsülü */}
                 {seciliMi && (
                   <motion.div
                     layoutId="aktif-kategori-kapsulu"
@@ -248,7 +244,6 @@ export const Header: React.FC<HeaderProps> = ({
                 <span className="relative z-10 truncate sm:hidden">{kat.kisaEtiket}</span>
                 <span className="relative z-10 truncate hidden sm:inline">{kat.etiket}</span>
 
-                {/* O gün tamamlandıysa parlayan onay rozeti */}
                 {tamamlandiMi && (
                   <motion.span
                     initial={{ scale: 0 }}

@@ -1,7 +1,101 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" fill="none">
-  <rect width="120" height="120" rx="28" fill="#0A0D14"/>
-  <rect x="6" y="6" width="108" height="108" rx="22" stroke="#F59E0B" stroke-opacity="0.3" stroke-width="1.5"/>
-  <path d="M60 22L72 50L100 60L72 70L60 98L48 70L20 60L48 50L60 22Z" stroke="#FDE68A" stroke-width="2.5" stroke-linejoin="round" fill="#F59E0B" fill-opacity="0.12"/>
-  <circle cx="60" cy="60" r="6" fill="#6EE7B7"/>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <defs>
+    <!-- Derin Gece Obsidyen Arka Plan Gradyanı -->
+    <radialGradient id="bgGrad" cx="50%" cy="28%" r="78%">
+      <stop offset="0%" stop-color="#17223B" />
+      <stop offset="55%" stop-color="#0B101D" />
+      <stop offset="100%" stop-color="#05070C" />
+    </radialGradient>
 
+    <!-- Kraliyet Altını Metalik Gradyan (Kelime & Felsefe) -->
+    <linearGradient id="goldGrad" x1="110" y1="80" x2="402" y2="432" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FEF3C7" />
+      <stop offset="35%" stop-color="#F59E0B" />
+      <stop offset="75%" stop-color="#D97706" />
+      <stop offset="100%" stop-color="#FEF08A" />
+    </linearGradient>
+
+    <!-- Zümrüt & Safir Yörünge Gradyanı (Çizim & Yazılım) -->
+    <linearGradient id="accentOrbit" x1="96" y1="416" x2="416" y2="96" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#10B981" stop-opacity="0.85" />
+      <stop offset="50%" stop-color="#F59E0B" stop-opacity="0.95" />
+      <stop offset="100%" stop-color="#38BDF8" stop-opacity="0.85" />
+    </linearGradient>
+
+    <!-- İç Işıltı -->
+    <radialGradient id="centerGlow" cx="50%" cy="46%" r="36%">
+      <stop offset="0%" stop-color="#F59E0B" stop-opacity="0.28" />
+      <stop offset="55%" stop-color="#38BDF8" stop-opacity="0.08" />
+      <stop offset="100%" stop-color="#000000" stop-opacity="0" />
+    </radialGradient>
+
+    <!-- Kalem Ucu Gövde Gradyanı -->
+    <linearGradient id="nibBody" x1="256" y1="104" x2="256" y2="404" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FFFBEB" />
+      <stop offset="28%" stop-color="#FDE68A" />
+      <stop offset="68%" stop-color="#F59E0B" />
+      <stop offset="100%" stop-color="#92400E" />
+    </linearGradient>
+  </defs>
+
+  <!-- Ana Gövde (iOS/Android Squircle) -->
+  <rect width="512" height="512" rx="116" fill="url(#bgGrad)" />
+
+  <!-- Merkez Ambiyans Işıltısı -->
+  <circle cx="256" cy="256" r="200" fill="url(#centerGlow)" />
+
+  <!-- Dış İnce Altın Çerçeve -->
+  <rect x="22" y="22" width="468" height="468" rx="96" stroke="url(#goldGrad)" stroke-opacity="0.28" stroke-width="2.5" />
+
+  <!-- Kutsal Geometri & Usturlap Yörünge Halkaları -->
+  <circle cx="256" cy="256" r="176" stroke="url(#accentOrbit)" stroke-opacity="0.32" stroke-width="2" stroke-dasharray="6 8" />
+  <circle cx="256" cy="256" r="144" stroke="url(#goldGrad)" stroke-opacity="0.22" stroke-width="1.5" />
+
+  <!-- Köşe Kutup Noktaları (3 Disiplin: Amber, Zümrüt, Safir) -->
+  <circle cx="256" cy="80" r="5" fill="#FDE68A" />
+  <circle cx="116" cy="364" r="5" fill="#6EE7B7" />
+  <circle cx="396" cy="364" r="5" fill="#38BDF8" />
+
+  <!-- Arka Plan Elmas Pergel Çerçevesi -->
+  <path
+    d="M256 96L392 256L256 416L120 256L256 96Z"
+    stroke="url(#accentOrbit)"
+    stroke-opacity="0.35"
+    stroke-width="2"
+    fill="#0F172A"
+    fill-opacity="0.35"
+  />
+
+  <!-- Merkez Sembol: Dolma Kalem Ucu (Fountain Pen Nib) & Mimari Pergel -->
+  <!-- Sol Kanat -->
+  <path
+    d="M252 108L164 268L204 376H252V244C236 242 224 228 224 212C224 194 238 180 252 180V108Z"
+    fill="url(#nibBody)"
+  />
+  <!-- Sağ Kanat (Hafif Gölgeli Derinlik) -->
+  <path
+    d="M260 108V180C274 180 288 194 288 212C288 228 276 242 260 244V376H308L348 268L260 108Z"
+    fill="url(#goldGrad)"
+    fill-opacity="0.88"
+  />
+
+  <!-- Kalem Ucu Alt Bilezik (Ferrule) -->
+  <rect x="196" y="388" width="120" height="16" rx="8" fill="url(#goldGrad)" />
+  <rect x="214" y="412" width="84" height="8" rx="4" fill="#38BDF8" fill-opacity="0.8" />
+
+  <!-- Merkezdeki "N" Monogram Kemeri (Negatif & Altın Hat) -->
+  <path
+    d="M210 340V256L302 340V256"
+    stroke="#080C14"
+    stroke-width="10"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    opacity="0.72"
+  />
+
+  <!-- Merkez Yıldız Parlaması (Breather Hole Spark) -->
+  <path
+    d="M256 188L263 205L280 212L263 219L256 236L249 219L232 212L249 205L256 188Z"
+    fill="#FFFBEB"
+  />
+</svg>
