@@ -23,8 +23,9 @@ export interface DailyStore {
   streak: number;
   yukleniyor: boolean;
   hata: string | null;
-  turSec: (tur: KartTuru) => Promise<void>;
-  gunuKontrolEtVeYukle: (hedefTur?: KartTuru) => Promise<void>;
+  turSec: (tur: KartTuru) => void;
+  gunuKontrolEtVeYukle: () => void;
+  kartiAc: (hedefTur?: KartTuru) => Promise<void>;
   kartiTamamla: () => void;
   kartZorlaYenile: () => Promise<void>;
 }

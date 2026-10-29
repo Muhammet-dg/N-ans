@@ -28,21 +28,22 @@ const containerVariants: Variants = {
   visible: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.05,
-      delayChildren: 0.02
+      staggerChildren: 0.075,
+      delayChildren: 0.12
     }
   }
 };
 
 const itemVariants: Variants = {
-  hidden: { opacity: 0, y: 10 },
+  hidden: { opacity: 0, y: 16, scale: 0.98 },
   visible: {
     opacity: 1,
     y: 0,
+    scale: 1,
     transition: {
       type: 'spring',
-      stiffness: 280,
-      damping: 24
+      stiffness: 260,
+      damping: 22
     }
   }
 };
@@ -99,6 +100,7 @@ export const FocusCard: React.FC<FocusCardProps> = ({
       ? {
           primaryHex: '#F59E0B',
           softHex: '#FDE68A',
+          sweepRgba: 'rgba(253, 230, 138, 0.16)',
           badgeClass: 'bg-amber-500/12 text-amber-200 border-amber-500/30',
           borderLeftClass: 'border-amber-500/70',
           taskBoxClass:
@@ -119,6 +121,7 @@ export const FocusCard: React.FC<FocusCardProps> = ({
       ? {
           primaryHex: '#10B981',
           softHex: '#6EE7B7',
+          sweepRgba: 'rgba(110, 231, 183, 0.16)',
           badgeClass: 'bg-emerald-500/12 text-emerald-200 border-emerald-500/30',
           borderLeftClass: 'border-emerald-500/70',
           taskBoxClass:
@@ -138,6 +141,7 @@ export const FocusCard: React.FC<FocusCardProps> = ({
       : {
           primaryHex: '#38BDF8',
           softHex: '#BAE6FD',
+          sweepRgba: 'rgba(186, 230, 253, 0.16)',
           badgeClass: 'bg-sky-500/12 text-sky-200 border-sky-500/30',
           borderLeftClass: 'border-sky-400/70',
           taskBoxClass:
@@ -178,26 +182,38 @@ export const FocusCard: React.FC<FocusCardProps> = ({
   };
 
   return (
-    <div className="w-full max-w-xl mx-auto px-3.5 sm:px-6">
+    <div className="w-full max-w-xl mx-auto px-3.5 sm:px-6" style={{ perspective: '1200px' }}>
       <AnimatePresence mode="wait">
         <motion.article
           key={kart.id}
-          initial={{ opacity: 0, y: 18, scale: 0.985 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, y: -12, scale: 0.985 }}
+          initial={{ opacity: 0, y: 34, scale: 0.92, rotateX: 12 }}
+          animate={{ opacity: 1, y: 0, scale: 1, rotateX: 0 }}
+          exit={{ opacity: 0, y: -16, scale: 0.96 }}
           transition={{
             type: 'spring',
-            stiffness: 280,
-            damping: 24
+            stiffness: 210,
+            damping: 22,
+            mass: 0.85
           }}
           className={`relative overflow-hidden rounded-2xl sm:rounded-3xl bg-slate-900/80 backdrop-blur-xl border shadow-2xl transition-colors duration-500 ${
             pulseActive
               ? tema.pulseClass
               : kart.tamamlandi
               ? tema.doneCardClass
-              : 'border-white/[0.09] shadow-glass'
+              : 'border-white/[0.1] shadow-glass'
           }`}
         >
+          {/* Kart Açılışında Yüzeyden Geçen Sinematik Işık Perdesi (Light Sweep) */}
+          <motion.div
+            initial={{ x: '-130%', skewX: -20 }}
+            animate={{ x: '220%', skewX: -20 }}
+            transition={{ duration: 1.15, ease: 'easeOut', delay: 0.1 }}
+            style={{
+              background: `linear-gradient(90deg, transparent 0%, ${tema.sweepRgba} 50%, transparent 100%)`
+            }}
+            className="pointer-events-none absolute inset-y-0 w-1/2 z-20"
+          />
+
           {/* Üst Hareketli Işık Şeridi */}
           <div className="relative h-[2px] w-full overflow-hidden bg-white/[0.04]">
             <motion.div

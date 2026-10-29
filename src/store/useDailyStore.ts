@@ -39,73 +39,84 @@ export const useDailyStore = create<DailyStore>()(
       yukleniyor: false,
       hata: null,
 
-      turSec: async (tur: KartTuru) => {
+      // Sekme değiştirildiğinde otomatik kart çekmez; o sekmede bugün açılmış kart varsa onu gösterir, yoksa davet ekranında bekler
+      turSec: (tur: KartTuru) => {
         const state = get();
         const bugun = bugununTarihi();
         const mevcutKart = state.bugunkuKartlar?.[tur];
 
-        // Seçilen sekmenin bugünkü kartı zaten hazırsa anında göster
         if (gecerliKartMi(mevcutKart) && mevcutKart.tarih === bugun) {
           set({
             aktifTur: tur,
             bugunkuKart: mevcutKart,
             hata: null
           });
-          return;
+        } else {
+          set({
+            aktifTur: tur,
+            bugunkuKart: null,
+            hata: null
+          });
         }
-
-        // Hazır değilse aktif türü değiştirip o kategori için kart yükle
-        set({
-          aktifTur: tur,
-          bugunkuKart: null
-        });
-        await get().gunuKontrolEtVeYukle(tur);
       },
 
-      gunuKontrolEtVeYukle: async (hedefTur?: KartTuru) => {
+      // Uygulama ilk açıldığında sadece tarihi kontrol eder; eski günün kartlarını sıfırlar, otomatik API çağrısı yapmaz
+      gunuKontrolEtVeYukle: () => {
+        const state = get();
+        const bugun = bugununTarihi();
+        const seciliTur: KartTuru = state.aktifTur || 'KELIME';
+        const gelenMap = state.bugunkuKartlar || BOS_KARTLAR;
+
+        const guncelMap: BugunkuKartlarMap = {
+          KELIME:
+            gecerliKartMi(gelenMap.KELIME) && gelenMap.KELIME.tarih === bugun
+              ? gelenMap.KELIME
+              : null,
+          CIZIM:
+            gecerliKartMi(gelenMap.CIZIM) && gelenMap.CIZIM.tarih === bugun
+              ? gelenMap.CIZIM
+              : null,
+          YAZILIM:
+            gecerliKartMi(gelenMap.YAZILIM) && gelenMap.YAZILIM.tarih === bugun
+              ? gelenMap.YAZILIM
+              : null
+        };
+
+        set({
+          aktifTur: seciliTur,
+          bugunkuKartlar: guncelMap,
+          bugunkuKart: guncelMap[seciliTur],
+          yukleniyor: false,
+          hata: null
+        });
+      },
+
+      // Kullanıcı "Odağı Aç" butonuna bastığında çalışır
+      kartiAc: async (hedefTur?: KartTuru) => {
         const state = get();
         if (state.yukleniyor) return;
 
         const seciliTur: KartTuru = hedefTur || state.aktifTur || 'KELIME';
-        const bugun = bugununTarihi();
         const gecmisListesi = Array.isArray(state.gecmis) ? state.gecmis : [];
         const kartlarMap: BugunkuKartlarMap = {
           ...BOS_KARTLAR,
           ...(state.bugunkuKartlar || {})
         };
 
-        // Eğer eski sürümden kalan bugunkuKart varsa ve map içinde yoksa senkronize et
-        if (
-          gecerliKartMi(state.bugunkuKart) &&
-          state.bugunkuKart.tarih === bugun &&
-          !kartlarMap[state.bugunkuKart.tur]
-        ) {
-          kartlarMap[state.bugunkuKart.tur] = state.bugunkuKart;
-        }
-
-        const buTurunKarti = kartlarMap[seciliTur];
-        if (gecerliKartMi(buTurunKarti) && buTurunKarti.tarih === bugun) {
-          set({
-            aktifTur: seciliTur,
-            bugunkuKart: buTurunKarti,
-            bugunkuKartlar: kartlarMap,
-            yukleniyor: false,
-            hata: null
-          });
-          return;
-        }
-
         set({ aktifTur: seciliTur, yukleniyor: true, hata: null });
 
         try {
-          const haricBasliklar = [
-            ...gecmisListesi.map((k) => k.baslik),
-            ...Object.values(kartlarMap)
-              .filter(gecerliKartMi)
-              .map((k) => k.baslik)
-          ];
+          // Sinematik ritüel animasyonunun hissedilmesi için minimum 650ms zarif geçiş süresi
+          const [yeniKart] = await Promise.all([
+            fetchYeniGunlukKart(seciliTur, [
+              ...gecmisListesi.map((k) => k.baslik),
+              ...Object.values(kartlarMap)
+                .filter(gecerliKartMi)
+                .map((k) => k.baslik)
+            ]),
+            new Promise((resolve) => setTimeout(resolve, 650))
+          ]);
 
-          const yeniKart = await fetchYeniGunlukKart(seciliTur, haricBasliklar);
           const guncelMap: BugunkuKartlarMap = {
             ...kartlarMap,
             [seciliTur]: yeniKart
@@ -171,58 +182,12 @@ export const useDailyStore = create<DailyStore>()(
 
       kartZorlaYenile: async () => {
         const state = get();
-        if (state.yukleniyor) return;
-
-        const seciliTur: KartTuru = state.aktifTur || 'KELIME';
-        const gecmisListesi = Array.isArray(state.gecmis) ? state.gecmis : [];
-        const kartlarMap: BugunkuKartlarMap = {
-          ...BOS_KARTLAR,
-          ...(state.bugunkuKartlar || {})
-        };
-
-        set({ yukleniyor: true, hata: null });
-
-        try {
-          const haricBasliklar = [
-            ...gecmisListesi.map((k) => k.baslik),
-            ...Object.values(kartlarMap)
-              .filter(gecerliKartMi)
-              .map((k) => k.baslik)
-          ];
-
-          const yeniKart = await fetchYeniGunlukKart(seciliTur, haricBasliklar);
-          const guncelMap: BugunkuKartlarMap = {
-            ...kartlarMap,
-            [seciliTur]: yeniKart
-          };
-
-          set({
-            bugunkuKart: yeniKart,
-            bugunkuKartlar: guncelMap,
-            gecmis: gecmisListesi,
-            yukleniyor: false,
-            hata: null
-          });
-        } catch {
-          const yedek = yerelYedekKartGetir(seciliTur);
-          const guncelMap: BugunkuKartlarMap = {
-            ...kartlarMap,
-            [seciliTur]: yedek
-          };
-
-          set({
-            bugunkuKart: yedek,
-            bugunkuKartlar: guncelMap,
-            gecmis: gecmisListesi,
-            yukleniyor: false,
-            hata: null
-          });
-        }
+        await state.kartiAc(state.aktifTur);
       }
     }),
     {
       name: 'nuans-storage',
-      version: 3,
+      version: 4,
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({
         aktifTur: state.aktifTur,
@@ -245,14 +210,10 @@ export const useDailyStore = create<DailyStore>()(
           YAZILIM: gecerliKartMi(gelenMap.YAZILIM) ? gelenMap.YAZILIM : null
         };
 
-        if (gecerliKartMi(p.bugunkuKart) && !temizMap[p.bugunkuKart.tur]) {
-          temizMap[p.bugunkuKart.tur] = p.bugunkuKart;
-        }
-
         return {
           ...currentState,
           aktifTur: seciliTur,
-          bugunkuKart: temizMap[seciliTur] || (gecerliKartMi(p.bugunkuKart) ? p.bugunkuKart : null),
+          bugunkuKart: temizMap[seciliTur],
           bugunkuKartlar: temizMap,
           gecmis: Array.isArray(p.gecmis) ? p.gecmis.filter(gecerliKartMi) : [],
           streak: typeof p.streak === 'number' && !Number.isNaN(p.streak) ? p.streak : 0

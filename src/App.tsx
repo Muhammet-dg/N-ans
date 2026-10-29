@@ -4,6 +4,7 @@ import { Check } from 'lucide-react';
 import { useDailyStore } from './store/useDailyStore';
 import { Header } from './components/Header';
 import { FocusCard } from './components/FocusCard';
+import { RitualPromptCard } from './components/RitualPromptCard';
 import { ArchiveDrawer } from './components/ArchiveDrawer';
 import { AmbientBackground } from './components/AmbientBackground';
 import { BottomDock } from './components/BottomDock';
@@ -19,6 +20,7 @@ export const App: React.FC = () => {
     yukleniyor,
     turSec,
     gunuKontrolEtVeYukle,
+    kartiAc,
     kartiTamamla,
     kartZorlaYenile
   } = useDailyStore();
@@ -29,11 +31,15 @@ export const App: React.FC = () => {
   const [paylasBildirimi, setPaylasBildirimi] = useState<string | null>(null);
 
   useEffect(() => {
-    void gunuKontrolEtVeYukle();
+    gunuKontrolEtVeYukle();
   }, [gunuKontrolEtVeYukle]);
 
   const handlePaylas = async () => {
-    if (!bugunkuKart) return;
+    if (!bugunkuKart) {
+      setPaylasBildirimi('Önce günün odak kartını açın');
+      setTimeout(() => setPaylasBildirimi(null), 2000);
+      return;
+    }
 
     const metin = `✦ ${bugunkuKart.baslik} (${bugunkuKart.alt_baslik})\n\n“${bugunkuKart.ozet}”\n\nGörev: ${bugunkuKart.gunluk_gorev}\n— Nüans & Atelier`;
 
@@ -91,46 +97,44 @@ export const App: React.FC = () => {
         bugunkuKartlar={bugunkuKartlar}
         yukleniyor={yukleniyor}
         aktifTur={aktifTur}
-        onTurSec={(tur) => void turSec(tur)}
+        onTurSec={(tur) => turSec(tur)}
         onYeniKartCek={() => void kartZorlaYenile()}
         onAyarlarAc={() => setAyarlarAcik(true)}
       />
 
-      {/* Ana İçerik Alanı */}
-      <main className="relative z-10 flex-1 w-full pt-3 pb-24 sm:py-5 sm:pb-28">
-        {yukleniyor || !bugunkuKart ? (
-          <div className="w-full max-w-xl mx-auto px-3.5 sm:px-6">
-            <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-slate-900/75 backdrop-blur-xl border border-white/[0.08] p-5 sm:p-7 space-y-4 shadow-2xl">
-              <div className="flex items-center justify-between">
-                <div className="h-5 w-32 rounded-full bg-white/[0.06] animate-pulse" />
-                <div className="h-5 w-20 rounded-full bg-white/[0.05] animate-pulse" />
-              </div>
-              <div className="space-y-2">
-                <div className="h-3.5 w-40 rounded bg-white/[0.1] animate-pulse" />
-                <div className="h-7 w-3/4 rounded-lg bg-white/[0.08] animate-pulse" />
-              </div>
-              <div className="h-12 w-full rounded-xl bg-white/[0.05] animate-pulse" />
-              <div className="space-y-2">
-                <div className="h-3.5 w-full rounded bg-white/[0.04] animate-pulse" />
-                <div className="h-3.5 w-5/6 rounded bg-white/[0.04] animate-pulse" />
-              </div>
-              <div className="h-16 w-full rounded-xl bg-white/[0.04] border border-white/[0.08] animate-pulse" />
-              <div className="pt-1 flex items-center justify-center gap-2.5 text-xs text-slate-400">
-                <div className="w-4 h-4 rounded-full border-2 border-white/20 border-t-sky-400 animate-spin" />
-                <span className="font-serif tracking-wide">
-                  Odak kartı hazırlanıyor...
-                </span>
-              </div>
-            </div>
-          </div>
-        ) : (
-          <FocusCard
-            kart={bugunkuKart}
-            timerAcik={timerAcik}
-            onToggleTimer={() => setTimerAcik((prev) => !prev)}
-            onTamamla={kartiTamamla}
-          />
-        )}
+      {/* Ana İçerik Alanı: Kullanıcı isteyene kadar mühürlü ritüel kartı, bastığında sinematik açılış */}
+      <main className="relative z-10 flex-1 w-full pt-4 pb-24 sm:py-6 sm:pb-28 flex flex-col justify-center">
+        <AnimatePresence mode="wait">
+          {!bugunkuKart || yukleniyor ? (
+            <motion.div
+              key={`prompt-${aktifTur}`}
+              initial={{ opacity: 0, scale: 0.96 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 1.04, filter: 'blur(6px)' }}
+              transition={{ duration: 0.35, ease: 'easeInOut' }}
+            >
+              <RitualPromptCard
+                aktifTur={aktifTur}
+                yukleniyor={yukleniyor}
+                onKartiAc={() => void kartiAc(aktifTur)}
+              />
+            </motion.div>
+          ) : (
+            <motion.div
+              key={`card-${bugunkuKart.id}`}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+            >
+              <FocusCard
+                kart={bugunkuKart}
+                timerAcik={timerAcik}
+                onToggleTimer={() => setTimerAcik((prev) => !prev)}
+                onTamamla={kartiTamamla}
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
       </main>
 
       {/* PWA Yüzen Cam Alt Dock */}
